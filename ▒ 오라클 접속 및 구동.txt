@@ -1,0 +1,47 @@
+-- ■■■ 오라클 접속 및 구동 ■■■--
+
+--(명령 프롬프트 상태에서...)
+   
+
+--○ 접속된 사용자 없이 단순히 SQL 프롬프트만 띄우도록 하겠다.
+C:\>sqlplus/nolog
+--==>>
+/*
+SQL*Plus: Release 11.2.0.2.0 Production on 화 2월 15 17:28:57 2022
+
+Copyright (c) 1982, 2014, Oracle.  All rights reserved.
+
+SQL>
+*/
+
+
+-- ※ 『sqlplus』는 SQL(Structed Query Language, 구조화된 질의어,쿼리문) 을 수행하기 위해 Oracle 에서 제공하는
+--     도구(툴, 유틸리티)이다.
+--     SQL로 Oracle과 소통한다.
+
+-- ※ 『PATH=C:\oraclexe\app\oracle\product\11.2.0\server\bin;』
+--    경로에 존재하는 『sqlplus.exe』
+--    이미 이 경로가 환경변수 path 에 등록되어 있으므로
+--    『C:\>sqlplus/nolog』와 같이 명령어 사용이 가능한 상태인 것이다.
+
+
+SQL> ipconfig
+--==>> SP2-0042: unknown command "ipconfig" - rest of line ignored.
+SQL> dir
+--==>> SP2-0042: unknown command "dir" - rest of line ignored.
+SQL> cls
+--==>> SP2-0042: unknown command "cls" - rest of line ignored.
+
+-- ※ 일반적인 도스 명령어(윈도우 명령어)를 수행할 수 없다.
+--    (즉, 수행할 수 있는 상태나 환경이 아니다.)
+
+SQL> show user
+--==>> USER is ""
+--> 현재 접속한 사용자 계정을 조회하는 구문
+
+
+nolog : 별도의 사용자로 접속한 것이 아니라서 USER is ""가 출력
+
+
+
+
