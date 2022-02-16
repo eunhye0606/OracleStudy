@@ -43,7 +43,7 @@ SQL> show user
 nolog : 별도의 사용자로 접속한 것이 아니라서 USER is ""가 출력
 
 ================================================================================
-2일차
+--2일차
 
 -- ○ 첫 번째 관리자 계정인 『sys』로 연결해 본다.
 
@@ -505,6 +505,124 @@ ORACLE instance shut down.		▷ 오라클 인스턴스 셧다운
 --    ------------         -----------
 --       관리자	             운영자
 
+
+
+SQL> conn sys/java006$ as sysdba
+--==>>Connected.
+SQL> show user
+--==>>USER is "SYS"
+SQL> shutdown
+--==>>
+/*
+Database closed.
+Database dismounted.
+ORACLE instance shut down.
+*/
+SQL> show user
+--==>>USER is "SYS"
+
+SQL> startup (중지됐을 때, 일반 계정으로 가면 접근 어쩌고 sysdba로 접속해서 구동)
+--==>>
+/*
+ORACLE instance started.
+
+Total System Global Area 1068937216 bytes
+Fixed Size                  2260048 bytes
+Variable Size             616563632 bytes
+Database Buffers          444596224 bytes
+Redo Buffers                5517312 bytes
+Database mounted.
+Database opened.
+*/
+
+-- ○ hr 사용자 계정에 『sysoper』 권한 부여하기 → sys가...
+
+SQL> conn sys/java006$ as sysdba
+--==>>Connected.
+SQL> show user
+--==>>USER is "SYS"
+SQL> grant sysoper to hr;
+--==>>Grant succeeded.
+
+-- ○ sysoper 권한을 가진 hr 계정으로 오라클 서버 접속 및
+--    서버 중지 명령 수행
+SQL> conn hr/lion as sysoper
+--==>>Connected.
+SQL> show user
+--==>>USER is "PUBLIC" ▶ 공공연하게 공동체 질서를 위해 있는 계정 권한이다..
+SQL> shutdown immediate
+--==>>
+/*
+Database closed.
+Database dismounted.
+ORACLE instance shut down.
+*/
+-- ○ 다시 오라클 서버 구동
+SQL> show user
+--==>>
+/*
+USER is "PUBLIC"
+SQL> startup
+ORACLE instance started.
+Database mounted.
+Database opened.
+*/
+
+
+-- ○ sysoper 권한을 가진 hr 계정으로
+--    현재 오라클 서버에 존재하고 있는 사용자 계정 정보 상태 조회
+SQL> select username,account_status from dba_users;
+--==>>
+/*
+select username,account_status from dba_users
+                                    *
+ERROR at line 1:
+ORA-00942: table or view does not exist
+*/
+
+-- ■■■ 오라클 서버 연결 모드의 3가지 방법 ■■■--
+
+관리자계정(sysdba) : 구동,중지, 상태 조회
+운영자계정(sysoper): 구동,중지
+일반 계정(normal) : X
+
+-- 1. as sysdba
+--> as sysdba 로 연결하면 오라클 서버의 『관리자』로 연결되는 것이다.
+--  user 명은 sys로 확인된다.
+--  오라클 섯버 관리자로 연결되는 것이기 때문에
+--  오라클에서 제공하는 모든 기능을 전부 활용할 수 있다.
+--  오라클 서버가 startup 또는 shutdown 되어도 연결이 가능하다.
+--  → 일반적인 연결은 『conn 계정/패스워드 as sysdba』 형태로 연결하게 된다.
+
+-- 2. as sysoper
+--> as sysoper 로 연결하면 오라클 서버의 『운영자』로 연결되는 것이다.
+--  user 명은 public으로 확인 된다.
+--  사용자 계정 정보 테이블에 접근하는 것은 불가능하다.
+--  오라클 서버의 구동 및 중지 명령 수행이 가능하다.
+--  오라클 서버가 startup 또는 shutdown 되어도 연결이 가능하다.
+--  → 일반적인 연결은 『conn 계정/패스워드 as sysoper』 형태로 연결하게 된다.
+
+-- 3. normal
+--> 오라클 서버에 존재하는 『일반적인 사용자』로 연결되는 것이다.
+--  오라클 서버가 구동중인 상태에서만 연결이 가능하고
+--  오라클 서버가 구동 중지 상태일 경우 연결이 불가능하다.
+--  관리자가 부여해준 권한(또는 롤)을 통해서만 사용이 가능하다.
+-- → 일반적인 연결은 『conn 계정/패스워드』 형태로 연결하게 된다.
+
+//로그인 
+SQL> conn hr
+Enter password: ▶ 몇자리인지도 안나옴
+Connected.
+SQL> disconn
+Disconnected from Oracle Database 11g Express Edition Release 11.2.0.2.0 - 64bit Production
+
+
+
+SQL> conn sys as sysdba
+Enter password: ▶ 몇자리인지도 안나옴 
+Connected.
+SQL> show user
+USER is "SYS"
  
 
 
