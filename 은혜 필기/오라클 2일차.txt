@@ -1,0 +1,128 @@
+■■■오라클 2일차■■■
+
+admin : 윈도우 최고 관리자
+SYS   : 오라클 최고 관리자
+
+
+C:\>sqlpuls sys/java006$ as sysdba	→ sys에게 넘겨 줄 값들/비번 맨 마지막 Roll
+
+
+
+C:\> sqlplus sys/java006$ as sysdba → 일반 도스 명령어로 접속 수행
+
+SQL> connect sys/java006$ as sysdba → SQL에서 sys로 접속하는 방법
+
+오라클에 연결하면서 종합적인 상태를 확인하는 명령어
+SQL> select status from v$instance;
+
+STATUS
+------------------------
+OPEN → 접속 가능하다.
+
+sys → password : java006$(우리가 설정)
+
+express exadition 깔면! 디비건들기 전에 사전에 테스트하는 계정이 있음.
+오라클의 암묵적인 룰.
+hr /password : lion
+
+
+standard 이상에서부터 있어서 우리가 만들거임
+scott /password : tiger
+이 계정이 있음.
+
+C:\>sqlpuls sys/java006$ as sysdba
+	    hr/line
+
+SQL> connect sys/java006$ as sysdba
+     connect hr/lion
+     conn hr/lion
+
+======================================================================================
+자바에서 중요한 내용 class
+오라클에서 중요한 내용 TABLE - (일단 표라고 생각...)
+
+표 ▶ 테이블
+가입회원 ▶ 테이블명
+회원번호	회원명		전화번호 ▶ 항목명 : 칼럼명
+6234		이호석		010- 1234..
+1414		최문정		010- 1431..
+4134		김정용		010- 5432..	
+
+데이터 : 레코드
+즉, 레코드가 3개 이다.
+가로 - 행/ 세로 - 열
+
+
+TABLESPACE (TABLE1, TABLE2, TABLE3...) : 테이블 모아둠..!
+
+select username, account_status from dba_users;
+       ------------------------      ---------
+            항목, 칼럼 		      테이블
+
+일반 계정에서 저 쿼리를 짜니 ...
+ORA-00942: table or view does not exist
+오라클 : "그런거 없는데?"
+(있는거 안보여준다는거도 아니고 없다함. → 이게 오라클의 보안 방식)
+
+==========================================================================
+윈도우 최고 관리자 Windows - Adimistrator > Administrators 그룹
+		   -------
+ORACLE - sys > sysdba
+
+		   계정 - (내계정밑에 관리자가 있음 그래서 난 에러안뜬거)
+			   난 ...
+			   오라클이 건물안에 세들면
+			   건물주는 오라클사무실에 들어갈수있음..
+
+기본적으로 Administrators 그룹 안에 ORACLE이 포함됨. 그래서 가능.(비번이 달라도)
+건물주가 입장할떄는 pass를 제대로 확인하지 않고 들여보냄.
+
+즉,
+
+-- ※ Adiministrator(SIST(각자 이름계정) → 윈도우 사용자 계정)가
+--    ORA_DBA(→ 윈도우 사용자 그룹)에 포함되어 있을 경우
+--    취약한 보안정책으로 인해
+--    실무에서는 정말 특별한 경우가 아니고서는 이를 제외시키고 사용해야 한다.
+--==>> ORA_DBA 사용자 그룹에서 윈도우 관리자 계정 제거~!!!
+
+
+-- ※ 제거 이후..
+--    sys 의 계정 및 패스워드가 일치하지 않으면
+--    오라클 서버에 접속할 수 없는 상태가 된다.
+
+<<[윈도우 키 + R]을 눌러 실행창을 열고 lusrmgr.msc를 입력>>
+<<윈도우 10 로컬 사용자 및 그룹이 없는 경우>>
+
+-- ○ hr 사용자 계정에 sysdba 권한(롤) 부여하기 → sys가...
+SQL> exit
+--==>>Disconnected from Oracle Database 11g Express Edition Release 11.2.0.2.0 - 64bit Production
+
+C:\>sqlplus sys/java006$ as sysdba
+--==>>
+/*
+SQL*Plus: Release 11.2.0.2.0 Production on 수 2월 16 14:19:28 2022
+
+Copyright (c) 1982, 2014, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Express Edition Release 11.2.0.2.0 - 64bit Production
+*/
+SQL> show user
+--==>>USER is "SYS"
+
+SQL> grant sysdba to hr;
+
+--==>>Grant succeeded.
+
+
+
+ 
+
+
+
+
+
+
+
+
