@@ -1,0 +1,267 @@
+SELECT USER
+FROM DUAL;
+--==>>SYS
+
+SELECT '문자열'
+FROM DUAL;
+--==>>문자열
+
+SELECT 550 + 230
+FROM DUAL;
+--==>>780
+
+SELECT '박현수' + '홍은혜'
+FORM DUAL;
+--==>> 에러 발생
+/*
+ORA-00923: FROM keyword not found where expected
+00923. 00000 -  "FROM keyword not found where expected"
+숫자가 아니면 『+』은 유효하지 않다.
+*/
+
+
+
+
+
+-- ○ 현재 오라클 서버에 존재하는 사용자 계정 상태 조회
+
+SELECT USERNAME, ACCOUNT_STATUS -- 이 항목들을 조회한다.
+FROM DBA_USERS; -- TABLESPACE에서 테이블를 꺼내서
+--   --------- 엄밀히 말하면 테이블은 아님 아래 설명.
+--==>>
+/*
+SYS	                OPEN
+SYSTEM	            OPEN
+ANONYMOUS	        OPEN
+HR	                OPEN
+APEX_PUBLIC_USER	LOCKED
+FLOWS_FILES	        LOCKED
+APEX_040000	        LOCKED
+OUTLN	            EXPIRED & LOCKED
+DIP	                EXPIRED & LOCKED
+ORACLE_OCM	        EXPIRED & LOCKED
+XS$NULL	            EXPIRED & LOCKED
+MDSYS	            EXPIRED & LOCKED
+CTXSYS	            EXPIRED & LOCKED
+DBSNMP	            EXPIRED & LOCKED
+*/
+
+SELECT * -- DBA_USERS가 가진 칼럼(항목)들을 모두 조회한다.
+FROM DBA_USERS;
+--==>>
+/*
+SYS	0		OPEN		2022-08-14	SYSTEM	TEMP	2014-05-29	DEFAULT	SYS_GROUP		10G 11G 	N	PASSWORD
+SYSTEM	5		OPEN		2022-08-14	SYSTEM	TEMP	2014-05-29	DEFAULT	SYS_GROUP		10G 11G 	N	PASSWORD
+ANONYMOUS	35		OPEN		2014-11-25	SYSAUX	TEMP	2014-05-29	DEFAULT	DEFAULT_CONSUMER_GROUP			N	PASSWORD
+HR	43		OPEN		2022-08-15	USERS	TEMP	2014-05-29	DEFAULT	DEFAULT_CONSUMER_GROUP		10G 11G 	N	PASSWORD
+APEX_PUBLIC_USER	45		LOCKED	2014-05-29	2014-11-25	SYSTEM	TEMP	2014-05-29	DEFAULT	DEFAULT_CONSUMER_GROUP		10G 11G 	N	PASSWORD
+FLOWS_FILES	44		LOCKED	2014-05-29	2014-11-25	SYSAUX	TEMP	2014-05-29	DEFAULT	DEFAULT_CONSUMER_GROUP		10G 11G 	N	PASSWORD
+APEX_040000	47		LOCKED	2014-05-29	2014-11-25	SYSAUX	TEMP	2014-05-29	DEFAULT	DEFAULT_CONSUMER_GROUP		10G 11G 	N	PASSWORD
+OUTLN	9		EXPIRED & LOCKED	2022-02-15	2022-02-15	SYSTEM	TEMP	2014-05-29	DEFAULT	DEFAULT_CONSUMER_GROUP		10G 11G 	N	PASSWORD
+DIP	14		EXPIRED & LOCKED	2014-05-29	2014-05-29	SYSTEM	TEMP	2014-05-29	DEFAULT	DEFAULT_CONSUMER_GROUP		10G 11G 	N	PASSWORD
+ORACLE_OCM	21		EXPIRED & LOCKED	2014-05-29	2014-05-29	SYSTEM	TEMP	2014-05-29	DEFAULT	DEFAULT_CONSUMER_GROUP		10G 11G 	N	PASSWORD
+XS$NULL	2147483638		EXPIRED & LOCKED	2014-05-29	2014-05-29	SYSTEM	TEMP	2014-05-29	DEFAULT	DEFAULT_CONSUMER_GROUP		10G 11G 	N	PASSWORD
+MDSYS	42		EXPIRED & LOCKED	2014-05-29	2022-02-15	SYSAUX	TEMP	2014-05-29	DEFAULT	DEFAULT_CONSUMER_GROUP		10G 11G 	N	PASSWORD
+CTXSYS	32		EXPIRED & LOCKED	2022-02-15	2022-02-15	SYSAUX	TEMP	2014-05-29	DEFAULT	DEFAULT_CONSUMER_GROUP		10G 11G 	N	PASSWORD
+DBSNMP	29		EXPIRED & LOCKED	2014-05-29	2014-05-29	SYSAUX	TEMP	2014-05-29	DEFAULT	DEFAULT_CONSUMER_GROUP		10G 11G 	N	PASSWORD
+XDB	34		EXPIRED & LOCKED	2014-05-29	2014-05-29	SYSAUX	TEMP	2014-05-29	DEFAULT	DEFAULT_CONSUMER_GROUP		10G 11G 	N	PASSWORD
+APPQOSSYS	30		EXPIRED & LOCKED	2014-05-29	2014-05-29	SYSAUX	TEMP	2014-05-29	DEFAULT	DEFAULT_CONSUMER_GROUP		10G 11G 	N	PASSWORD
+*/
+
+SELECT USERNAME
+FROM DBA_USERS;
+--==>>
+/*
+SYS
+SYSTEM
+ANONYMOUS
+HR
+APEX_PUBLIC_USER
+FLOWS_FILES
+APEX_040000
+OUTLN
+DIP
+ORACLE_OCM
+XS$NULL
+MDSYS
+CTXSYS
+DBSNMP
+XDB
+APPQOSSYS
+*/
+
+SELECT USERNAME, CREATED
+FROM DBA_USERS;
+--==>>
+/*
+SYS	2014-05-29
+SYSTEM	2014-05-29
+ANONYMOUS	2014-05-29
+HR	2014-05-29
+APEX_PUBLIC_USER	2014-05-29
+FLOWS_FILES	2014-05-29
+APEX_040000	2014-05-29
+OUTLN	2014-05-29
+DIP	2014-05-29
+ORACLE_OCM	2014-05-29
+XS$NULL	2014-05-29
+MDSYS	2014-05-29
+CTXSYS	2014-05-29
+DBSNMP	2014-05-29
+XDB	2014-05-29
+APPQOSSYS	2014-05-29
+*/
+
+
+--> 『DBA_』로 시작하는 Oracle Data Dictionary View라고 한다.
+--   오로지 관리자 권한(sysdba)으로 접속했을 경우에만 조회가 가능하다.
+--   아직 데이터 딕셔너리 개념을 잡지 못해도 상관없다.
+
+
+
+--○ 『HR』 사용자 계정을 잠금 상태로 설정
+ALTER USER HR ACCOUNT LOCK; -- 바꾸다 계정 HR ACCOUT를 LOCK.
+--==>>User HR이(가) 변경되었습니다.
+
+
+
+-- ○ 사용자 계정 상태 조회
+SELECT USERNAME, ACCOUNT_STATUS
+FROM DBA_USERS;
+--==>>
+-- :
+-- HR	LOCKED
+-- :
+
+
+-- ○ 『HR』 사용자 계정을 잠금 해제 설정
+ALTER USER HR ACCOUNT UNLOCK;
+--==>>User HR이(가) 변경되었습니다.
+
+-- ○ 다시 사용자 계정 상태 조회
+
+SELECT USERNAME, ACCOUNT_STATUS
+FROM DBA_USERS;
+--==>>HR	OPEN
+
+------------------------------------------------------------------------
+
+--○ TABLESPACE 생성
+
+-- ※ TABLESPACE 란?
+-->   세그먼트(테이블, 인덱스,...) 를 담아두는(저장해두는)
+--    오라클의 논리적인 저장 구조를 의미한다.
+
+CREATE TABLESPACE TBS_EDUA -- 생성하겠다. 테이블스테이스를...TBS_EDUA 이름으로..
+DATAFILE 'C:\TESTDATA\TBS_EDUA01.DBF' -- 물리적 데이터 파일 경로 및 이름 지정(옵션1)
+SIZE 4M                             -- 사이즈(데이터파일의 용량)(옵션2)
+EXTENT MANAGEMENT LOCAL             -- 오라클 서버가 세그먼트를 알아서 관리한다.(옵션3)
+SEGMENT SPACE MANAGEMENT AUTO;      -- 세그먼트 공간 관리도 오라클 서버가 자동으로 관리해줄 수 있는 옵션 설정.(옵션4)
+--==>>TABLESPACE TBS_EDUA이(가) 생성되었습니다.
+
+-- ※ 테이블스페이스 생성 구문을 실행하기 전에
+--    해당 경로의 물리적인 디렉터리 생성이 필요하다.
+--    (C:\TESTDATA)
+
+
+
+-- ○ 생성된 테이블스페이스 조회
+SELECT *
+FROM DBA_TABLESPACES; -- 데이터 딕셔너리! DBA_ 로 시작!
+--==>>
+/*
+SYSTEM	8192	65536		1	2147483645	2147483645		65536	ONLINE	PERMANENT	LOGGING	NO	LOCAL	SYSTEM	NO	MANUAL	DISABLED	NOT APPLY	NO	HOST	NO	
+SYSAUX	8192	65536		1	2147483645	2147483645		65536	ONLINE	PERMANENT	LOGGING	NO	LOCAL	SYSTEM	NO	AUTO	DISABLED	NOT APPLY	NO	HOST	NO	
+UNDOTBS1	8192	65536		1	2147483645	2147483645		65536	ONLINE	UNDO	LOGGING	NO	LOCAL	SYSTEM	NO	MANUAL	DISABLED	NOGUARANTEE	NO	HOST	NO	
+TEMP	8192	1048576	1048576	1		2147483645	0	1048576	ONLINE	TEMPORARY	NOLOGGING	NO	LOCAL	UNIFORM	NO	MANUAL	DISABLED	NOT APPLY	NO	HOST	NO	
+USERS	8192	65536		1	2147483645	2147483645		65536	ONLINE	PERMANENT	LOGGING	NO	LOCAL	SYSTEM	NO	AUTO	DISABLED	NOT APPLY	NO	HOST	NO	
+TBS_EDUA	8192	65536		1	2147483645	2147483645		65536	ONLINE	PERMANENT	LOGGING	NO	LOCAL	SYSTEM	NO	AUTO	DISABLED	NOT APPLY	NO	HOST	NO	
+*/
+-- admn part.............
+
+
+-- ○ 파일 용량 정보 조회(물리적인 파일 이름 조회)
+SELECT *
+FROM DBA_DATA_FILES;
+--==>>
+/*
+                        :
+C:\TESTDATA\TBS_EDUA01.DBF	5	TBS_EDUA	4194304	512	AVAILABLE	5	NO	0	0	0	3145728	384	ONLINE
+                        :
+*/
+-------------------------여기까지 테이블을 저장할 수 있는 공간 생성! 
+
+-- ○ 오라클 사용자 계정 생성
+CREATE USER heh IDENTIFIED BY java006$
+DEFAULT TABLESPACE TBS_EDUA;
+--==>>User HEH이(가) 생성되었습니다.
+--> heh 라는 사용자 계정을 생성하겠다. (만들겠다.)
+--  이 사용자 계정의 패스워드는 java006$ 로 하겠다.
+--  이 계정을 통해 생성하는 오라클 세그먼트는
+--  기본적으로 TBS_EDUA 라는 테이블스페이스에 생성할 수 있도록 설정하겠다.
+
+--------------------------- final 프로젝트에서 필요한 어드민 파트!
+
+-- ※ 생성된 오라클 사용자 계정(각자 본인 이름 이니셜 계정)을 통해 접속 시도
+--    → 접속 불가(실패)
+--    『create session』 권한이 없기 때문에 접속 불가.
+
+-- ○ 생성된 오라클 사용자 계정(각자 본인 이름 이니셜 계정)에
+--    오라클 서버 접속이 가능하도록 CREATE SESSION 권한 부여
+
+--계정 생성 뒤, ① CREATE SESSION
+GRANT CREATE SESSION TO HEH; -- 부여하겠다 권한명 TO 누구에게
+--==>>Grant을(를) 성공했습니다.
+
+--○ 각자 생성한 오라클 사용자 계정의 시스템 관련 권한 조회
+SELECT *
+FROM DBA_SYS_PRIVS;
+--==>>
+/*
+            :
+HEH   CREATE SESSION  NO
+            :
+*/
+
+-- ○ 각자 생성한 오라클 사용자 계정에
+--    테이블 생성시 가능하도록 CREATE TABLE 권한 부여
+
+-- ② CREATE TABLE
+GRANT CREATE TABLE TO HEH;
+--==>>Grant을(를) 성공했습니다.
+
+
+-- ③ QUOTA
+--○ 각자 생성한 오라클 사용자 계정에
+--   테이블 스페이스(TBS_EDUA)에서 사용할 수 있는 공간(할당량) 지정.
+ALTER USER HEH
+QUOTA UNLIMITED ON TBS_EDUA; -- 할당량 제한없이(1M,2M..) TBS_EDUA에
+--==>>User HEH이(가) 변경되었습니다.
+
+--------------------------------------------------------------------------
+
+CREATE USER scott
+IDENTIFIED BY tiger;
+--==>>User SCOTT이(가) 생성되었습니다.
+
+GRANT CONNECT, RESOURCE, UNLIMITED TABLESPACE TO SCOTT;
+--    컨넥트,  리소스 활용, 할당량 무한
+--==>>Grant을(를) 성공했습니다.
+
+
+ALTER USER SCOTT DEFAULT TABLESPACE USERS;
+-- 변경 유저 scott users라는 테이블스페이스 쓰게할게
+--==>>User SCOTT이(가) 변경되었습니다.
+
+ALTER USER SCOTT TEMPORARY TABLESPACE TEMP;
+-- 구조 변경 유저 scott ,임시 테이블스페이스는 temp를 쓸게
+--==>>User SCOTT이(가) 변경되었습니다.
+
+
+
+
+
+
+
+
+
