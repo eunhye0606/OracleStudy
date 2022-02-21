@@ -1,0 +1,20 @@
+제약조건이 없기때문에 롤백가능.
+
+OR == IN == ANY
+
+BETWEEN == AND
+
+= == LIKE
+
+와일드카드는 반드시 『LIKE』와 함께!
+
+
+<순서 중요!>
+--○ 데이터 수정(UPDATE → TBL_DEPT)
+UPDATE TBL_DEPT                      ①어떤걸 바꿀까.
+SET DNAME = '연구부', LOC = '경기'   ③어떻게 바꿀까
+WHERE DEPTNO = 50;		     ②조건
+
+※ 절대 조건절부터 해라. SET마지막에해라
+
+DML이 아닌 구문은 보통 오토COMMIT
