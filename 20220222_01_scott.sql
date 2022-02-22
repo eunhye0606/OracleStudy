@@ -479,13 +479,24 @@ FROM DUAL;
 
 SELECT SYSDATE "현재 시각"
         ,TO_DATE('1998-06-06 12:00:00','YYYY-MM-DD HH24:MI:SS')"내탄생일"
+        ,TRUNC(((SYSDATE - TO_DATE('1998-06-06 12:00:00','YYYY-MM-DD HH24:MI:SS')) * (24*60*60))/60/60/24)"일수"
         ,TRUNC(((SYSDATE - TO_DATE('1998-06-06 12:00:00','YYYY-MM-DD HH24:MI:SS')) * (24*60*60))/60/60/24/365)"년"  
          ,MOD(TRUNC(((SYSDATE - TO_DATE('1998-06-06 12:00:00','YYYY-MM-DD HH24:MI:SS')) * (24*60*60))/60/60/24),365)"일" 
          ,MOD(TRUNC(((SYSDATE - TO_DATE('1998-06-06 12:00:00','YYYY-MM-DD HH24:MI:SS')) * (24*60*60))/60/60),24)"시간" 
          ,MOD(TRUNC(((SYSDATE - TO_DATE('1998-06-06 12:00:00','YYYY-MM-DD HH24:MI:SS')) * (24*60*60))/60),60)"분" 
          ,MOD(((SYSDATE - TO_DATE('1998-06-06 12:00:00','YYYY-MM-DD HH24:MI:SS')) * (24*60*60)),60)"초" 
-        ,TRUNC(((SYSDATE - TO_DATE('1998-06-06 12:00:00','YYYY-MM-DD HH24:MI:SS')) * (24*60*60))/60/60/24)"일수"
 FROM DUAL;
+--==>>
+/*
+2022-02-22 17:48:27	  -- 현재 시각
+1998-06-06 12:00:00	  -- 내탄생일
+8662                  -- 일수
+23                    -- 년
+267                   -- 남은 일
+5                     -- 시간  
+48                    -- 분
+27                    -- 초
+*/
 
 
 SELECT SUBSTR('123',1,2)
