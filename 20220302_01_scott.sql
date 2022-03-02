@@ -491,23 +491,487 @@ ON T2.JECODE = T.JECODE
 98776	모옹쉘	30	2022-03-02
 */
 
+--방법2.
+SELECT T.*
+FROM
+(
+    SELECT *
+    FROM TBL_JUMUNBACKUP
+    UNION ALL
+    SELECT *
+    FROM TBL_JUMUN
+) T
+WHERE T.JECODE IN ('빼빼로','모옹쉘')
+    AND T.JUSU IN (20,30);
+--==>>
+/*
+1	빼빼로	20	2001-11-01
+3	모옹쉘	30	2001-11-01
+19	빼빼로	20	2001-11-19
+20	빼빼로	30	2001-11-20
+98765	빼빼로	20	2022-03-02
+98776	모옹쉘	30	2022-03-02
+*/
 
 
+--○ 데이터 추가 입력
+INSERT INTO TBL_JUMUN VALUES(98777,'모옹쉘',10,SYSDATE);
+--==>>1 행 이(가) 삽입되었습니다.
+INSERT INTO TBL_JUMUN VALUES(98778,'빼빼로',40,SYSDATE);
+--==>>1 행 이(가) 삽입되었습니다.
+INSERT INTO TBL_JUMUN VALUES(98779,'맛동산',20,SYSDATE);
+--==>>1 행 이(가) 삽입되었습니다.
+INSERT INTO TBL_JUMUN VALUES(98780,'모옹쉘',20,SYSDATE);
+--==>>1 행 이(가) 삽입되었습니다.
+INSERT INTO TBL_JUMUN VALUES(98781,'빼빼로',30,SYSDATE);
+--==>>1 행 이(가) 삽입되었습니다.
+
+SELECT *
+FROM TBL_JUMUN;
+--==>>
+/*
+98778	빼빼로	40	2022-03-02
+98779	맛동산	20	2022-03-02
+98780	모옹쉘	20	2022-03-02
+98781	빼빼로	30	2022-03-02
+98764	고래밥	10	2022-03-02
+98765	빼빼로	20	2022-03-02
+98766	맛동산	30	2022-03-02
+98767	홈런볼	40	2022-03-02
+98768	오감자	50	2022-03-02
+98769	웨하스	30	2022-03-02
+98770	고래밥	20	2022-03-02
+98771	맛동산	20	2022-03-02
+98772	웨하스	20	2022-03-02
+98773	빼빼로	90	2022-03-02
+98774	에이스	20	2022-03-02
+98775	꼬북칩	30	2022-03-02
+98776	모옹쉘	30	2022-03-02
+98777	모옹쉘	10	2022-03-02
+*/
+
+--○ 커밋
+COMMIT;
+--==>>커밋 완료.
+------------------------------------------------최종!
+SELECT T.*
+FROM
+(
+    SELECT *
+    FROM TBL_JUMUNBACKUP
+    UNION ALL
+    SELECT *
+    FROM TBL_JUMUN
+)T JOIN (SELECT JECODE,JUSU
+         FROM TBL_JUMUNBACKUP
+         INTERSECT
+         SELECT JECODE,JUSU
+         FROM TBL_JUMUN)T2
+ON T2.JECODE = T.JECODE
+    AND T2.JUSU = T.JUSU;
+--==>> 데이터 추가 후..
+/*
+1	    빼빼로	20	2001-11-01
+3	    모옹쉘	30	2001-11-01
+19	    빼빼로	20	2001-11-19
+20	    빼빼로	30	2001-11-20
+98781	빼빼로	30	2022-03-02
+98765	빼빼로	20	2022-03-02
+98776	모옹쉘	30	2022-03-02
+*/
+
+--방법2.
+SELECT T.*
+FROM
+(
+    SELECT *
+    FROM TBL_JUMUNBACKUP
+    UNION ALL
+    SELECT *
+    FROM TBL_JUMUN
+) T
+WHERE T.JECODE IN ('빼빼로','모옹쉘')
+    AND T.JUSU IN (20,30);
+
+--------------------------------------------------------------------------------
+-- ※ TBL_JUMUN_scott.sql 파일을 통해 데이터 갱신 ~!!!
+--------------------------------------------------------------------------------
+-- 교집합 확인.
+SELECT JECODE,JUSU
+ FROM TBL_JUMUNBACKUP
+ INTERSECT
+ SELECT JECODE,JUSU
+ FROM TBL_JUMUN;
+ --==>>
+ /*
+모옹쉘	30
+빼빼로	20
+빼빼로	30
+ */
+
+-- 방법1.
+SELECT T.*
+FROM
+(
+    SELECT *
+    FROM TBL_JUMUNBACKUP
+    UNION ALL
+    SELECT *
+    FROM TBL_JUMUN
+)T JOIN (SELECT JECODE,JUSU
+         FROM TBL_JUMUNBACKUP
+         INTERSECT
+         SELECT JECODE,JUSU
+         FROM TBL_JUMUN)T2
+ON T2.JECODE = T.JECODE
+    AND T2.JUSU = T.JUSU;
+--==>> 데이터 추가 후..
+/*
+1	    빼빼로	20	2001-11-01
+3	    모옹쉘	30	2001-11-01
+19	    빼빼로	20	2001-11-19
+20	    빼빼로	30	2001-11-20
+98781	빼빼로	30	2022-03-02
+98765	빼빼로	20	2022-03-02
+98776	모옹쉘	30	2022-03-02
+*/
+
+--방법2-1.
+SELECT T.*
+FROM
+(
+    SELECT *
+    FROM TBL_JUMUNBACKUP
+    UNION ALL
+    SELECT *
+    FROM TBL_JUMUN
+) T
+WHERE T.JECODE IN ('빼빼로','모옹쉘')
+    AND T.JUSU IN (20,30);
+--==>> 왜 98780 이 나올까?
+/*
+1	    빼빼로	20	2001-11-01 → O
+3	    모옹쉘	30	2001-11-01 → O
+19	    빼빼로	20	2001-11-19 → O
+20	    빼빼로	30	2001-11-20 → O
+98780	모옹쉘	20	2022-03-02 → 교집합 했을 때 몽쉘 20개는 해당사항 XX CHECK~!!
+98781	빼빼로	30	2022-03-02 → O
+98765	빼빼로	20	2022-03-02 → O
+98776	모옹쉘	30	2022-03-02 → O
+*/
+--> 이유!
+-- 모옹쉘	30 / 빼빼로	20 / 빼빼로	30 / (모옹쉘 20)
+--                                       ----------- 방법2-1....
+
+--방법2-2.
+SELECT T.*
+FROM
+(
+    SELECT *
+    FROM TBL_JUMUNBACKUP
+    UNION ALL
+    SELECT *
+    FROM TBL_JUMUN
+) T
+WHERE CONCAT(T.JECODE, T.JUSU)
+    IN('모옹쉘30', '빼빼로20','빼빼로30');
+--==>>
+/*
+1	    빼빼로	20	2001-11-01
+3	    모옹쉘	30	2001-11-01
+19	    빼빼로	20	2001-11-19
+20	    빼빼로	30	2001-11-20
+98781	빼빼로	30	2022-03-02
+98765	빼빼로	20	2022-03-02
+98776	모옹쉘	30	2022-03-02
+*/
+
+--방법2-3. (최종! 오! 참신!)
+SELECT T.*
+FROM
+(
+    SELECT *
+    FROM TBL_JUMUNBACKUP
+    UNION ALL
+    SELECT *
+    FROM TBL_JUMUN
+) T
+WHERE CONCAT(T.JECODE, T.JUSU)
+    IN( SELECT CONCAT(JECODE, JUSU)
+        FROM TBL_JUMUNBACKUP
+        INTERSECT
+        SELECT CONCAT(JECODE, JUSU)
+        FROM TBL_JUMUN
+        );
+--==>>
+/*
+1	    빼빼로	20	2001-11-01
+3	    모옹쉘	30	2001-11-01
+19	    빼빼로	20	2001-11-19
+20	    빼빼로	30	2001-11-20
+98781	빼빼로	30	2022-03-02
+98765	빼빼로	20	2022-03-02
+98776	모옹쉘	30	2022-03-02
+*/
+--------------------------------------------------------------------------------
+
+--○ TBL_EMP 테이블에서 급여가 가장 많은 사원의
+--   사원번호, 사원명, 직종명, 급여 항목을 조회하는 쿼리문을 구성한다.
+SELECT *
+FROM TBL_EMP
+ORDER BY SAL DESC;
+
+SELECT EMPNO, ENAME, JOB, SAL
+FROM TBL_EMP
+WHERE SAL =( SELECT MAX(SAL)
+        FROM TBL_EMP);
+--==>>7839	KING	PRESIDENT	5000
+
+--『=ANY』
+
+--『=ALL』
+
+SELECT EMPNO, ENAME, JOB,SAL
+FROM TBL_EMP
+WHERE SAL >=ALL( SELECT SAL
+                 FROM TBL_EMP);
+
+--==>>7839	KING	PRESIDENT	5000
+
+--○ TBL_EMP 테이블에서 20번 부서에 근무하는 사원 중
+--   급여가 가장 많은 사원의 
+--   사원번호, 사원명, 직종명, 급여 항목을 조회하는 쿼리문을 구성한다.
+
+--> 서브쿼리
+SELECT EMPNO, ENAME, JOB, SAL
+FROM TBL_EMP
+WHERE SAL >= ALL(SELECT SAL
+                FROM TBL_EMP
+                WHERE DEPTNO = 20) -- 3000을 얻기 위한 조건
+      AND DEPTNO = 20; -- 조회를 위한 선택조건
+--==>>
+/*
+7902	FORD	ANALYST	3000
+7788	SCOTT	ANALYST	3000
+*/
+
+-- ○TBL_EMP 테이블에서 수당(커미션:COMM)이 가장 많은 사원의
+-- 사원번호, 사원명, 부서번호, 직종명, 커미션 항목을 조회한다.
+SELECT *
+FROM TBL_EMP
+ORDER BY COMM DESC;
+-->1400이 MAX
+--> 오라클에서 NULL은 가장 큰값이다.
+
+SELECT EMPNO, ENAME, DEPTNO, JOB, COMM
+FROM TBL_EMP
+WHERE COMM = (  SELECT MAX(COMM)
+                FROM TBL_EMP);
+--> 하지만 MAX() 함수에서는 NULL은 제외하지!
+--  집계함수에서 null은 제외
+--==>>7654	MARTIN	30	SALESMAN	1400
+
+SELECT EMPNO, ENAME, DEPTNO, JOB, COMM
+FROM TBL_EMP
+WHERE COMM >= ALL( SELECT COMM
+                    FROM TBL_EMP);
+--==>> 조회 결과 없음
+--   NULL도 포함해서 COMM을 조회하는데
+--   NULL과 NULL을 비교할 수 없기에.. 
+--   NULL 보다 큰건... 조회할 수 없다..?
+
+SELECT EMPNO, ENAME, DEPTNO, JOB, COMM
+FROM TBL_EMP
+WHERE COMM >= ALL( SELECT COMM
+                    FROM TBL_EMP
+                    WHERE COMM IS NOT NULL);
+                    
+--○ DISTINCT() 중복 행(레코드)을 제거하는 함수
+--1.
+SELECT EMPNO, ENAME, JOB
+FROM EMP
+WHERE EMPNO = (관리자로 등록된 번호);
+
+--2.
+SELECT EMPNO, ENAME, JOB
+FROM EMP
+WHERE EMPNO IN (SELECT MGR
+                FROM EMP);
+--> 이거 풀면....↓ 
+--3.
+SELECT EMPNO, ENAME, JOB
+FROM EMP
+WHERE EMPNO IN (7902,7698,7698,7839,7698,7839,7839,7566,NULL,7698,7788,7698,7566,7782);
+-- 관리자 번호 중복되는게 있다.
+-- 하나씩 다 검사...
+SELECT DISTINCT(DEPTNO)
+FROM EMP;
+--==>>
+/*
+30
+20
+10
+*/
+
+--4.
+SELECT EMPNO, ENAME, JOB
+FROM EMP
+WHERE EMPNO IN (SELECT DISTINCT (MGR)
+                FROM EMP);
+--==>>
+/*
+7566	JONES	MANAGER
+7698	BLAKE	MANAGER
+7782	CLARK	MANAGER
+7788	SCOTT	ANALYST
+7839	KING	PRESIDENT
+7902	FORD	ANALYST
+*/
+--------------------------------------------------------------------------------
+--※ JOIN 추가 → NATURAL JOIN(JOIN 필기에....UNUON 전에....)
+SELECT D.DEPTNO, D.DNAME, E.ENAME, E.SAL
+FROM EMP E JOIN DEPT D
+ON E.DEPTNO = D.DEPTNO;
+--==>>
+/*
+10	ACCOUNTING	CLARK	2450
+10	ACCOUNTING	KING	5000
+10	ACCOUNTING	MILLER	1300
+20	RESEARCH	JONES	2975
+20	RESEARCH	FORD	3000
+20	RESEARCH	ADAMS	1100
+20	RESEARCH	SMITH	800
+20	RESEARCH	SCOTT	3000
+30	SALES	    WARD	1250
+30	SALES	    TURNER	1500
+30	SALES	    ALLEN	1600
+30	SALES	    JAMES	950
+30	SALES	    BLAKE	2850
+30	SALES	    MARTIN	1250
+*/
+-- 어떤 컬럼을 가지고 결합시켜라 명시 X
+-- 소속 컬럼 명시 X
+SELECT DEPTNO, DNAME, ENAME, SAL
+FROM EMP JOIN DEPT;
+--==>> 에러 발생
+--     ORA-00905: missing keyword
+
+-- 공통껄 알아서 부모껄 쓰냐 자식껄 쓰냐
+-- 니가 알아서 해줘 ~ 
+-- 적극적으로 쓰는건 지양!
+SELECT DEPTNO, DNAME, ENAME, SAL
+FROM EMP NATURAL JOIN DEPT;
+--==>>
+/*
+10	ACCOUNTING	CLARK	2450
+10	ACCOUNTING	KING	5000
+10	ACCOUNTING	MILLER	1300
+20	RESEARCH	JONES	2975
+20	RESEARCH	FORD	3000
+20	RESEARCH	ADAMS	1100
+20	RESEARCH	SMITH	800
+20	RESEARCH	SCOTT	3000
+30	SALES	    WARD	1250
+30	SALES	    TURNER	1500
+30	SALES	    ALLEN	1600
+30	SALES	    JAMES	950
+30	SALES	    BLAKE	2850
+30	SALES	    MARTIN	1250
+*/
+--JOIN 공부 열심히 하기~
+
+--DBA..방법...
+SELECT DEPTNO, DNAME, ENAME, SAL
+FROM EMP JOIN DEPT
+USING(DEPTNO);
+--==>>
+/*
+10	ACCOUNTING	CLARK	2450
+10	ACCOUNTING	KING	5000
+10	ACCOUNTING	MILLER	1300
+20	RESEARCH	JONES	2975
+20	RESEARCH	FORD	3000
+20	RESEARCH	ADAMS	1100
+20	RESEARCH	SMITH	800
+20	RESEARCH	SCOTT	3000
+30	SALES	    WARD	1250
+30	SALES	    TURNER	1500
+30	SALES	    ALLEN	1600
+30	SALES	    JAMES	950
+30	SALES	    BLAKE	2850
+30	SALES	    MARTIN	1250
+*/
+--------------------------------------------------------------------------------
+--○ 날짜에 대한 세션 설정 변경
+ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD';
+--==>>Session이(가) 변경되었습니다.
+
+SELECT *
+FROM TBL_SAWON;
+--==>>
+/*
+1001	김민성	    9707251234567	2005-01-03	3000
+1002	서민지	    9505152234567	1999-11-23	4000
+1003	이지연	    9905192234567	2006-08-10	3000
+1004	이연주	    9508162234567	2007-10-10	4000
+1005	오이삭	    9805161234567	2007-10-10	4000
+1006	이현이	    8005132234567	1999-10-10	1000
+1007	박한이	    0204053234567	2010-10-10	1000
+1010	선우선	    0303044234567	2010-10-10	1600
+1011	남주혁	    0506073234567	2012-10-10	2600
+1013	남진	    6712121234567	1998-10-10	2200
+1014	홍수민	    0005044234567	2015-10-10	5200
+1015	임소민	    9711232234567	2007-10-10	5500
+1009	선우용녀	6912232234567	1998-10-10	1300
+1012	남궁민	    0208073234567	2012-10-10	2600
+1008	선동렬	    6803171234567	1998-10-10	1500
+1016	이이경	    0603194234567	2015-01-02	1500
+1017	이호석 	    9611121234567	2022-02-23	5000
+1018	신시은	    9910312234567	2022-02-23	5000
+*/
+-- ○ TBL_SAWON 테이블 백업(데이터 위주) →각 테이블 간의 관계나 제약조건 등은 제외
+CREATE TABLE TBL_SAWONBACKUP
+AS
+SELECT SANO, SNAME, JUBUN,HIREDATE,SAL
+FROM TBL_SAWON;
+--==>>Table TBL_SAWONBACKUP이(가) 생성되었습니다.
+--> ADMIN PART에서는 BACKUP이 매우 까다로움(리커버리,,,)
+
+--○ 데이터 활용...관리...여러 형태로 운용...
 
 
+--○ 데이터 수정
+-- ※ UPDATE문에 WHERE절 필수... 나중에 지우더라도 ㅠㅠ 제발
+--    COMMIT은 따로 해라... 제발...
+UPDATE TBL_SAWON
+SET SNAME = '똘똘이';
+COMMIT;
+--==>>
+/*
+18개 행 이(가) 업데이트되었습니다.
 
+커밋 완료.
+*/
+SELECT *
+FROM TBL_SAWON;
 
+ROLLBACK;
+--==>>롤백 완료.
 
+SELECT *
+FROM TBL_SAWON;
 
+-- 데이터 복원(UPDATE) → 불완전 복구
+-- 복원하는 과정에서 테이블안에 데이터 변화는
+-- 그건 적용을 못함..
+UPDATE TBL_SAWON -- 이게 먼저..
+SET SNAME = (SELECT SNAME
+              FROM TBL_SAWONBACKUP
+              WHERE SANO = TBL_SAWON.SANO)
+WHERE SNAME = '똘똘이'; --이게 퍼올려져서..
+--==>>18개 행 이(가) 업데이트되었습니다.
+SELECT *
+FROM TBL_SAWON;
 
-
-
-
-
-
-
-
-
-
-
-
+COMMIT;
+--==>>커밋 완료.
