@@ -1427,15 +1427,46 @@ FROM TBL_INSA;
 01141514444
 */
 
-추가문제. (기본 문제 풀이가 모두 끝난 후 작성한다.)
-          HR계정의 EMPLOYEES 테이블에서 커미션 받는 사람의 수와
-          안받는 사람의 수를 조회한다.
-          출력형태 ---------------
-              구분        인원수
-          ------------------------
-          커미션받는사원    XXX
-          커미션없는사원    XXX
-          모든사원          XXX
+--추가문제. (기본 문제 풀이가 모두 끝난 후 작성한다.)
+--          HR계정의 EMPLOYEES 테이블에서 커미션 받는 사람의 수와
+--          안받는 사람의 수를 조회한다.
+--          출력형태 ---------------
+--              구분        인원수
+--          ------------------------
+--          커미션받는사원    XXX
+--          커미션없는사원    XXX
+--          모든사원          XXX
+SELECT *
+FROM EMPLOYEES;
+
+DESC EMPLOYEES;
+
+--추가문제. (기본 문제 풀이가 모두 끝난 후 작성한다.)
+--          HR계정의 EMPLOYEES 테이블에서 커미션 받는 사람의 수와
+--          안받는 사람의 수를 조회한다.
+--          출력형태 ---------------
+--              구분        인원수
+--          ------------------------
+--          커미션받는사원    XXX
+--          커미션없는사원    XXX
+--          모든사원          XXX
+SELECT CASE GROUPING(T.커미션구분) WHEN 0 THEN T.커미션구분
+                                    ELSE'모든사원'
+                                    END"구분", COUNT(*)"인원수"
+FROM
+(
+    SELECT CASE WHEN COMMISSION_PCT IS NULL THEN '커미션없는사원'
+                ELSE '커미션있는사원'
+                END"커미션구분"
+    FROM EMPLOYEES
+)T
+GROUP BY ROLLUP (T.커미션구분);
+--==>>
+/*
+커미션없는사원	72
+커미션있는사원	35
+모든사원	107
+*/
 
 --33. TBL_INSA 테이블에서 BASICPAY + SUDANG 이                                                          
 --    100만원 미만, 100만원 이상~200만원 미만, 
@@ -3261,9 +3292,11 @@ WHERE BASICPAY + SUDANG = (SELECT MAX(BASICPAY + SUDANG)
                             FROM TBL_INSA);
 --==>>홍길동	2810000
 --------------------------------------------------------------------------------
+SELECT *
+FROM USER_TAB_COMMENTS;
 
-
-
+COMMENT ON TABLE TBL_INSA IS '인사데이터';
+--==>>Comment이(가) 생성되었습니다.
 
 
 
