@@ -163,5 +163,272 @@ END;
 --------------------------------------------------------------------------------
 --■■■ 프로시저 내에서의 예외 처리 ■■■--
 
+--○ TBL_MEMBER 테이블에 데이터를 입력하는 프로시저를 작성
+--   단, 이 프로시저를 통해 데이터를 입력할 경우
+--   CITY(지역) 항목에 '서울' , '경기','대전' 만 입력이 가능하도록 구성한다.
+--   이 지역 외의 다른 지역을 프로시저 호출을 통해 입력하고자 하는 경우
+--   (즉, 입력을 시도하는 경우)
+--   예외에 대한 처리를 하려고 한다.
+
+/*
+실행 예)
+EXEC PRC_MEMBER_INSERT('임소민','010-1111-1111','서울');
+--==>> 데이터 입력 O
+EXEC PRC_MEMBER_INSERT('이연주','010-2222-2222','부산');
+--==>> 데이터 입력 X
+*/
+
+CREATE OR REPLACE PROCEDURE PRC_MEMBER_INSERT
+(V_NAME         IN TBL_MEMBER.NAME%TYPE
+,V_TEL          IN TBL_MEMBER.TEL%TYPE
+,V_CITY         IN TBL_MEMBER.CITY%TYPE
+)
+IS
+    --선언부(주요 변수 선언)
+    --변수명  데이터타입;
+    -- 실행 영역의 쿼리문 수행을 위해 필요한 변수 선언①
+    -- ※ 오라클에서는 예외도 변수이다.②
+    
+    --①
+    V_NUM   TBL_MEMBER.NUM%TYPE;
+    --② 사용자 정의 예외에 대한 변수 선언 CHECK ~!!!
+    USER_DEFINE_ERROR   EXCEPTION;
+BEGIN
+    -- 프로시저를 통해 입력 처리를 정상적으로 진행해야 할 데이터인지 아닌지의 여부를
+    -- 가장 먼저 확인할 수 있도록 코드 구성
+    -- 진행 X 이면, INSERT 구문 안돌아감.
+    IF (V_CITY NOT IN ('서울','경기','대전'))
+        -- 예외 발생 CHECK ~ !!!
+        THEN RAISE USER_DEFINE_ERROR;       --예외발생시, 뒤에는 건너뛰고 예외처리구문으로 이동.
+    END IF;
+    
+    -- 선언한 변수에 값 담아내기
+    SELECT NVL(MAX(NUM),0) + 1 INTO V_NUM
+    FROM TBL_MEMBER;
+    
+    -- 쿼리문 구성 → INSERT
+    INSERT INTO TBL_MEMBER(NUM, NAME, TEL, CITY)
+    VALUES(V_NUM,V_NAME, V_TEL, V_CITY);
+    
+    -- 예외 처리 구문
+    EXCEPTION
+        WHEN USER_DEFINE_ERROR
+            THEN RAISE_APPLICATION_ERROR(-20001,'서울,경기,대전만 입력이 가능합니다.');
+                 ROLLBACK;
+        WHEN OTHERS     --USER_DEFINE_ERROR가 아니면 ...
+            THEN ROLLBACK;
+            --RAISE_APPLICATION_ERROR()
+            --20000번까지는 오라클의 에러
+            --프로젝트하면서 규칙
+            --ex) 클라이언트에러는 2100번대
+            --    서버 에러는 2200번대...
+    -- 커밋
+    COMMIT;
+END;
+--==>>Procedure PRC_MEMBER_INSERT이(가) 컴파일되었습니다.
+
+--RAISE USER_DEFINE_ERROR 이걸로 실행부에서 예외발생시,
+--뒤에 쿼리 다 무시하고 예외처리로 직행, 롤백까지1!!!
+--RAISE USER_DEFINE_ERROR이거 아닌 예외들은 일단 뒤에 구문 실행하고
+--에러 발생되면 롤백!
+
+
+--○ TBL_출고 테이블에 데이터 입력 시(즉, 출고 이벤트 발생 시)
+--   TBL_상품 테이블의 재고수량이 변동
+--   단, 출고번호는 입고번호와 마찬가지로 자동 증가.
+--   또한, 출고수량이 재고수량보다 많은 경우....
+--   출고 액션을 취소할 수 있도록 처리한다.(출고가 이루어지지 않도록...) → 예외처리
+/*
+실행 예)
+EXEC PRC_출고_INSERT('H001',10,600);
+
+-- 현재 상품 테이블의 바밤바 재고수량은 50개
+EXEC PRC_출고_INSERT('H001',10,600);
+--==>>에러 발생
+--    재고부족
+*/
+CREATE OR REPLACE PROCEDURE PRC_출고_INSERT
+(V_상품코드     IN TBL_상품.상품코드%TYPE     
+,V_출고수량     IN TBL_출고.출고수량%TYPE
+,V_출고단가     IN TBL_출고.출고단가%TYPE
+)
+IS
+    -- 선언부
+    --추가 주요 변수 선언
+    V_출고번호  TBL_출고.출고번호%TYPE;
+    N_재고수량  TBL_상품.재고수량%TYPE;
+    
+    -- 예외 변수 선언.
+    USER_DEFINE_ERROR EXCEPTION;
+BEGIN
+    -- 실행부
+    SELECT 재고수량 INTO N_재고수량
+    FROM TBL_상품
+    WHERE 상품코드 = V_상품코드;
+    
+    --예외발생
+    IF (N_재고수량 < V_출고수량)
+        THEN RAISE USER_DEFINE_ERROR;
+    END IF;
+    
+    SELECT NVL(MAX(출고번호),0) + 1 INTO V_출고번호
+    FROM TBL_출고;
+    
+    -- 출고 테이블 INSERT 쿼리문
+    INSERT INTO TBL_출고(출고번호, 상품코드, 출고수량, 출고단가)
+    VALUES(V_출고번호,V_상품코드,V_출고수량,V_출고단가);
+    
+    -- 상품 테이블 UPDATE 쿼리문
+    UPDATE TBL_상품
+    SET 재고수량 = 재고수량 - V_출고수량
+    WHERE 상품코드 = V_상품코드;
+    
+    --예외 처리
+    EXCEPTION 
+        WHEN USER_DEFINE_ERROR
+            THEN RAISE_APPLICATION_ERROR(-20002,'재고부족');
+            ROLLBACK;
+        WHEN OTHERS
+            THEN ROLLBACK;
+    
+    --커밋
+    COMMIT;
+END;
+--==>>Procedure PRC_출고_INSERT이(가) 컴파일되었습니다.
+
+--------------------------------------------------------------------------------
+--풀이
+-- 프로시저에 값 넘겨주는 순서대로 인식(상품코드, 출고수량, 출고단가)
+CREATE OR REPLACE PROCEDURE PRC_출고_INSERT
+(V_상품코드     IN TBL_상품.상품코드%TYPE
+,V_출고수량     IN TBL_출고.출고수량%TYPE
+,V_출고단가     IN TBL_출고.출고단가%TYPE
+)
+IS
+    -- 주요 변수 선언
+    V_재고수량  TBL_상품.재고수량%TYPE;
+    V_출고번호  TBL_출고.출고번호%TYPE;
+    
+    -- 사용자 정의 예외 선언
+    USER_DEFINE_ERROR EXCEPTION;
+BEGIN
+        --쿼리문 수행 이전에 수행 여부를 확인하는 과정에서
+        --재고 파악 → 기존 재고를 확인하는 과정이 선행되어야 한다.
+        --그래야 프로시저 호출 시, 넘겨받는 출고수량과 비교가 가능하기 때문...
+        SELECT 재고수량 INTO V_재고수량
+        FROM TBL_상품
+        WHERE 상품코드 = V_상품코드;
+        
+        -- 출고를 정상적으로 진행해 줄 것인지에 대한 여부 확인
+        -- 위에서 파악한 재고수량보다 현재 프로시저에서 넘겨받은 출고수량이 많으면
+        -- 예외발생~!!!!
+        IF (V_출고수량 > V_재고수량)
+            -- 예외 발생
+            THEN RAISE USER_DEFINE_ERROR;
+        END IF;
+        
+        -- 출고번호에 값 담아내기(편한대로 위에서 작성하면 리소스 낭비!)
+        -- PL/SQL 에서는 코드의 순서 중요하다!
+        -- 출고번호 얻어내기 → 위에서 선언한 변수에 값 담아내기
+        SELECT NVL(MAX(출고번호),0) + 1 INTO V_출고번호
+        FROM TBL_출고;
+        
+        --쿼리문 구성 → INSERT(TBL_출고)
+        INSERT INTO TBL_출고(출고번호, 상품코드, 출고수량, 출고단가)
+        VALUES(V_출고번호, V_상품코드, V_출고수량, V_출고단가);
+        
+        --쿼리문 구성 → UPDATE(TBL_상품)
+        UPDATE TBL_상품
+        SET 재고수량 = 재고수량 - V_출고수량
+        WHERE 상품코드 = V_상품코드;
+        
+        -- 예외처리
+        EXCEPTION
+            WHEN USER_DEFINE_ERROR
+                THEN RAISE_APPLICATION_ERROR(-20002,'재고 부족 ~!!!');
+                    ROLLBACK;
+            WHEN OTHERS
+                THEN ROLLBACK;
+        -- 커밋
+        COMMIT;
+END;
+--==>>Procedure PRC_출고_INSERT이(가) 컴파일되었습니다.
+
+--------------------------------------------------------------------------------
+
+--○ TBL_출고 테이블에서 출고수량을 수정(변경)하는 프로시저를 작성한다.
+--   프로시저 명 : PRC_출고_UPDATE()
+/*
+실행 예)
+EXEC PRC_출고_UPDATE(출고번호, 변경할수량);
+*/
+
+CREATE OR REPLACE PROCEDURE PRC_출고_UPDATE
+(V_출고번호     IN TBL_출고.출고번호%TYPE
+,V_변경할수량   IN TBL_상품.재고수량%TYPE
+)
+IS
+    --주요 변수 선언
+    V_상품재고수량  TBL_상품.재고수량%TYPE;
+    V_기존출고수량  TBL_출고.출고수량%TYPE;
+    
+    --예외변수
+    USER_DEFINE_ERROR1 EXCEPTION;
+    USER_DEFINE_ERROR2 EXCEPTION;
+BEGIN
+    --상품테이블 재고수량 담아내기
+    SELECT 재고수량 INTO V_상품재고수량
+    FROM TBL_상품
+    WHERE 상품코드 = (SELECT 상품코드
+                      FROM TBL_출고
+                      WHERE 출고번호 = V_출고번호);
+                      
+     --출고테이블 기존출고수량 담아내기
+     SELECT 출고수량 INTO V_기존출고수량
+     FROM TBL_출고
+     WHERE 출고번호 = V_출고번호;
+     
+    --예외처리
+    IF(V_상품재고수량 <V_변경할수량 - V_기존출고수량)
+        THEN RAISE USER_DEFINE_ERROR1;
+    ELSIF (V_변경할수량 = V_기존출고수량)
+        THEN RAISE USER_DEFINE_ERROR2;
+    END IF;
+    
+    --UPDASATE 쿼리문 → TBL_출고
+    UPDATE TBL_출고
+    SET 출고수량 = V_변경할수량
+    WHERE 출고번호 = V_출고번호;
+    
+    --UPDASATE 쿼리문 → TBL_상품
+    /*
+    UPDATE (SELECT S.상품코드, S.재고수량, C.출고번호,C.출고수량
+            FROM TBL_상품 S JOIN TBL_출고 C
+            ON S.상품코드 = C.상품코드) T
+    SET T.재고수량 = T.재고수량 - (V_변경할수량-V_기존출고수량)
+    WHERE T.출고번호 = V_출고번호;
+    */
+    UPDATE TBL_상품
+    SET 재고수량 = 재고수량 - (V_변경할수량 - V_기존출고수량)
+    WHERE 상품코드 = (SELECT 상품코드
+                      FROM TBL_출고
+                      WHERE 출고번호 = V_출고번호);
+    
+    --예외처리
+    EXCEPTION
+        WHEN USER_DEFINE_ERROR1
+            THEN RAISE_APPLICATION_ERROR(-20003,'재고수량부족   재고수량 :'||V_상품재고수량);
+                ROLLBACK;
+        WHEN USER_DEFINE_ERROR2
+            THEN RAISE_APPLICATION_ERROR(-20004,'변경사항없음. 기존출고수량 :'||V_기존출고수량);
+                ROLLBACK;
+        WHEN OTHERS
+            THEN ROLLBACK;
+    
+    --커밋
+    --COMMIT;
+END;
+--==>>Procedure PRC_출고_UPDATE이(가) 컴파일되었습니다.
+
 
 
