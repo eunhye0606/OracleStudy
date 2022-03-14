@@ -389,7 +389,7 @@ BEGIN
      WHERE 출고번호 = V_출고번호;
      
     --예외처리
-    IF(V_상품재고수량 <V_변경할수량 - V_기존출고수량)
+    IF(V_상품재고수량 <V_변경할수량)
         THEN RAISE USER_DEFINE_ERROR1;
     ELSIF (V_변경할수량 = V_기존출고수량)
         THEN RAISE USER_DEFINE_ERROR2;
@@ -409,7 +409,7 @@ BEGIN
     WHERE T.출고번호 = V_출고번호;
     */
     UPDATE TBL_상품
-    SET 재고수량 = 재고수량 - (V_변경할수량 - V_기존출고수량)
+    SET 재고수량 = (재고수량 + V_기존출고수량) - V_변경할수량
     WHERE 상품코드 = (SELECT 상품코드
                       FROM TBL_출고
                       WHERE 출고번호 = V_출고번호);
