@@ -418,3 +418,442 @@ FROM TBL_출고;
 
 EXEC PRC_출고_DELETE(7);
 
+--------------------------------------------------------------------------------
+--■■■ AFTER STATEMENT TRIGGER 상황 실습 ■■■--
+-- ※ DML 작업에 대한 이벤트 기록을 남길 때 주로 사용.
+
+--○ 실습을 위한 준비 → 테이블 생성
+CREATE TABLE TBL_TEST1
+(ID         NUMBER
+,NAME       VARCHAR2(30)
+,TEL        VARCHAR2(60)
+,CONSTRAINT TEST1_ID_PK PRIMARY KEY(ID)
+);
+--==>>Table TBL_TEST1이(가) 생성되었습니다.
+
+--○ 실습을 위한 준비 → 테이블 생성
+CREATE TABLE TBL_EVENTLOG
+(MEMO   VARCHAR2(200)
+,ILJA   DATE DEFAULT SYSDATE
+);
+--==>>Table TBL_EVENTLOG이(가) 생성되었습니다.
+
+--○ 확인
+SELECT *
+FROM TBL_TEST1;
+--==>> 조회결과없음
+SELECT *
+FROM TBL_EVENTLOG;
+--==>> 조회결과없음
+
+--○ 생성한 TRIGGER 작동 여부 확인
+--   → TBL_TEST1 테이블을 대상으로 INSERT, UPDATE, DELETE 수행
+INSERT INTO TBL_TEST1(ID, NAME, TEL)
+VALUES(1,'홍은혜','010-1111-1111');
+--==>>1 행 이(가) 삽입되었습니다.
+INSERT INTO TBL_TEST1(ID, NAME, TEL)
+VALUES(2,'이호석','010-2222-2222');
+--==>>1 행 이(가) 삽입되었습니다.
+INSERT INTO TBL_TEST1(ID, NAME, TEL)
+VALUES(3,'임소민','010-3333-3333');
+--==>>1 행 이(가) 삽입되었습니다.
+
+UPDATE TBL_TEST1
+SET NAME ='임대민'
+WHERE ID = 3;
+--==>>1 행 이(가) 업데이트되었습니다.
+
+UPDATE TBL_TEST1
+SET NAME ='임중민'
+WHERE ID = 3;
+--==>>1 행 이(가) 업데이트되었습니다.
+
+DELETE
+FROM TBL_TEST1
+WHERE ID = 1;
+--==>>1 행 이(가) 삭제되었습니다.
+
+DELETE 
+FROM TBL_TEST1
+WHERE ID = 2;
+--==>>1 행 이(가) 삭제되었습니다.
+
+DELETE 
+FROM TBL_TEST1
+WHERE ID = 3;
+--==>>1 행 이(가) 삭제되었습니다.
+
+--커밋
+COMMIT;
+--==>>커밋 완료
+
+ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD HH24:MI:SS';
+--==>>Session이(가) 변경되었습니다.
+
+
+--○ 확인
+SELECT *
+FROM TBL_TEST1;
+--==>> 조회결과없음
+
+SELECT *
+FROM TBL_EVENTLOG;
+--==>>
+/*
+INSERT 쿼리가 실행되었습니다.	2022-03-14 15:28:30
+INSERT 쿼리가 실행되었습니다.	2022-03-14 15:28:38
+INSERT 쿼리가 실행되었습니다.	2022-03-14 15:28:43
+UPDATE 쿼리가 실행되었습니다.	2022-03-14 15:29:37
+UPDATE 쿼리가 실행되었습니다.	2022-03-14 15:30:05
+DELETE 쿼리가 실행되었습니다.	2022-03-14 15:31:05
+DELETE 쿼리가 실행되었습니다.	2022-03-14 15:31:25
+DELETE 쿼리가 실행되었습니다.	2022-03-14 15:31:49
+*/
+
+
+--■■■ BEFORE STATEMENT TRIGGER 상황 실습 ■■■--
+-- ※ DML 작업 수행 전에 작업에 대한 가능 여부 확인
+INSERT INTO TBL_TEST1(ID, NAME, TEL)
+VALUES(4,'한충희','010-4444-4444');
+--==>>1 행 이(가) 삽입되었습니다.
+INSERT INTO TBL_TEST1(ID, NAME, TEL)
+VALUES(5,'최선하','010-5555-5555');
+--==>>1 행 이(가) 삽입되었습니다.
+INSERT INTO TBL_TEST1(ID, NAME, TEL)
+VALUES(6,'정은정','010-6666-6666');
+--==>>1 행 이(가) 삽입되었습니다.
+
+UPDATE TBL_TEST1
+SET NAME = '정금정'
+WHERE ID = 6;
+--==>>1 행 이(가) 업데이트되었습니다.
+DELETE
+FROM TBL_TEST1
+WHERE ID = 5;
+--==>>1 행 이(가) 삭제되었습니다.
+----------------------------------------
+-- 오라클서버 우리 PC에 있어서 PC시간을
+-- 오후 7시로 변경 후......
+-- 16:14 → 19:14
+----------------------------------------
+INSERT INTO TBL_TEST1(ID,NAME, TEL)
+VALUES(7,'이연주','010-7777-7777');
+--==>>에러발생
+--    ORA-20003: 작업은 09:00 ~ 18:00 까지만 가능합니다.
+UPDATE TBL_TEST1
+SET NAME = '정은정'
+WHERE ID = 6;
+--==>>에러발생
+--    ORA-20003: 작업은 09:00 ~ 18:00 까지만 가능합니다.
+DELETE
+FROM TBL_TEST1
+WHERE ID=4;
+--==>>에러발생
+--    ORA-20003: 작업은 09:00 ~ 18:00 까지만 가능합니다.
+
+--■■■ BEFORE ROW TRIGGER 상황 실습 ■■■--
+-- ※ 참조 관계가 설정된 데이터(자식) 삭제를 먼저 수행하는 모델
+
+--○ 실습 환경 구성을 위한 테이블 생성 → TBL_TEST2
+CREATE TABLE TBL_TEST2
+(CODE NUMBER
+,NAME VARCHAR2(40)
+,CONSTRAINT TEST2_CODE_PK PRIMARY KEY(CODE)
+);
+--==>>Table TBL_TEST2이(가) 생성되었습니다.
+
+--○ 실습 환경 구성을 위한 테이블 생성 → TBL_TEST3
+CREATE TABLE TBL_TEST3
+(SID NUMBER
+,CODE NUMBER
+,SU NUMBER
+,CONSTRAINT TEST3_SID_PK PRIMARY KEY(SID)
+,CONSTRAINT TEST3_CODE_FK FOREIGN KEY(CODE)
+            REFERENCES TBL_TEST2(CODE)
+);
+--==>>Table TBL_TEST3이(가) 생성되었습니다.
+
+--○ 실습 관련 데이터 입력
+INSERT INTO TBL_TEST2(CODE,NAME) VALUES(1, '텔레비전');
+INSERT INTO TBL_TEST2(CODE,NAME) VALUES(2, '냉장고');
+INSERT INTO TBL_TEST2(CODE,NAME) VALUES(3, '세탁기');
+INSERT INTO TBL_TEST2(CODE,NAME) VALUES(4, '건조기');
+--==>>1 행 이(가) 삽입되었습니다. * 4
+
+SELECT *
+FROM TBL_TEST2;
+--==>>
+/*
+1	텔레비전
+2	냉장고
+3	세탁기
+4	건조기
+*/
+
+COMMIT;
+--==>>커밋 완료
+
+--○ 실습 관련 데이터 입력
+INSERT INTO TBL_TEST3(SID, CODE, SU) VALUES(1,1,30);
+INSERT INTO TBL_TEST3(SID, CODE, SU) VALUES(2,1,50);
+INSERT INTO TBL_TEST3(SID, CODE, SU) VALUES(3,1,60);
+
+INSERT INTO TBL_TEST3(SID, CODE, SU) VALUES(4,1,30);
+INSERT INTO TBL_TEST3(SID, CODE, SU) VALUES(5,2,20);
+INSERT INTO TBL_TEST3(SID, CODE, SU) VALUES(6,3,30);
+
+INSERT INTO TBL_TEST3(SID, CODE, SU) VALUES(7,2,30);
+INSERT INTO TBL_TEST3(SID, CODE, SU) VALUES(8,2,20);
+INSERT INTO TBL_TEST3(SID, CODE, SU) VALUES(9,2,30);
+
+INSERT INTO TBL_TEST3(SID, CODE, SU) VALUES(10,3,30);
+INSERT INTO TBL_TEST3(SID, CODE, SU) VALUES(11,3,20);
+INSERT INTO TBL_TEST3(SID, CODE, SU) VALUES(12,3,30);
+--==>>1 행 이(가) 삽입되었습니다. * 12
+
+SELECT *
+FROM TBL_TEST3;
+--==>>
+/*
+1	1	30
+2	1	50
+3	1	60
+4	1	30
+5	2	20
+6	3	30
+7	2	30
+8	2	20
+9	2	30
+10	3	30
+11	3	20
+12	3	30
+*/
+
+COMMIT;
+--==>>커밋 완료.
+
+--○ 부모 테이블(TBL_TEST2)의 데이터 삭제 시도
+DELETE
+FROM TBL_TEST2
+WHERE CODE = 1;
+--==>>에러 발생
+--    ORA-02292: integrity constraint (SCOTT.TEST3_CODE_FK) violated - child record found
+--    (자식테이블에서 CODE 1을 참조하는 애들이 있어서 에러 발생)
+DELETE
+FROM TBL_TEST2
+WHERE CODE = 2;
+--==>>에러 발생
+--    ORA-02292: integrity constraint (SCOTT.TEST3_CODE_FK) violated - child record found
+--    (자식테이블에서 CODE 1을 참조하는 애들이 있어서 에러 발생)
+DELETE
+FROM TBL_TEST2
+WHERE CODE = 3;
+--==>>에러 발생
+--    ORA-02292: integrity constraint (SCOTT.TEST3_CODE_FK) violated - child record found
+--    (자식테이블에서 CODE 1을 참조하는 애들이 있어서 에러 발생)
+DELETE
+FROM TBL_TEST2
+WHERE CODE = 4;
+--==>>1 행 이(가) 삭제되었습니다.
+--    (자식 테이블에서 CODE 4를 참조하는 레코드가 없기에 DELETE 가능)
+
+
+--○ TRIGGER(트리거) 생성 이후 실습
+SELECT *
+FROM TBL_TEST2;
+--==>>
+/*
+1	텔레비전
+2	냉장고
+3	세탁기
+*/
+
+SELECT *
+FROM TBL_TEST3;
+--==>>
+/*
+1	1	30
+2	1	50
+3	1	60
+4	1	30
+5	2	20  ◀ 냉장고
+6	3	30
+7	2	30  ◀ 냉장고
+8	2	20  ◀ 냉장고
+9	2	30  ◀ 냉장고
+10	3	30
+11	3	20
+12	3	30
+*/
+
+DELETE
+FROM TBL_TEST2
+WHERE CODE = 2;
+--==>>1 행 이(가) 삭제되었습니다.
+
+SELECT *
+FROM TBL_TEST2;
+--==>>
+/*
+1	텔레비전
+3	세탁기
+*/
+SELECT *
+FROM TBL_TEST3;
+--==>>
+/*
+1	1	30
+2	1	50
+3	1	60
+4	1	30
+6	3	30
+10	3	30
+11	3	20
+12	3	30
+*/
+--------------------------------------------------------------------------------
+--■■■ AFTER ROW TRIGGER 상황 실습 ■■■--
+-- ※ 참조 테이블 관련 트랜잭션 처리
+
+UPDATE TBL_상품
+SET 재고수량 = 0;
+--==>>18개 행 이(가) 업데이트되었습니다.
+
+--TRUNCATE가 뭐에용?????????????????????????????????????????????????????????????
+TRUNCATE TABLE TBL_입고;
+--==>>Table TBL_입고이(가) 잘렸습니다.
+
+TRUNCATE TABLE TBL_출고;
+--==>>Table TBL_출고이(가) 잘렸습니다.
+
+SELECT *
+FROM TBL_상품;
+--==>>
+/*
+H001	바밤바	 600	0
+H002	죠스바	 500	0
+H003	메로나	 500	0
+H004	보석바	 600	0
+H005	쌍쌍바	 600	0
+H006	수박바	 500	0
+H007	빠삐코	 500	0
+C001	월드콘	1600	0
+C002	빵빠레	1700	0
+C003	구구콘	1800	0
+C004	메타콘	1500	0
+C005	부라보	1500	0
+C006	슈퍼콘	1500	0
+E001	빵또아	1100	0
+E002	셀렉션	1700	0
+E003	투데더	2500	0
+E004	거북알	1500	0
+E005	팥빙수	1500	0
+*/
+SELECT *
+FROM TBL_출고;
+--==>> 조회 결과 없음
+SELECT *
+FROM TBL_입고;
+--==>> 조회 결과 없음
+
+--○ 트리거(TRIGGER) 생성 이후 실습 테스트
+INSERT INTO TBL_입고(입고번호, 상품코드 ,입고일자, 입고수량, 입고단가)
+VALUES(1,'H001',SYSDATE,40,1000);
+--==>>1 행 이(가) 삽입되었습니다.
+INSERT INTO TBL_입고(입고번호, 상품코드 ,입고일자, 입고수량, 입고단가)
+VALUES(2,'H001',SYSDATE,60,1000);
+--==>>1 행 이(가) 삽입되었습니다.
+INSERT INTO TBL_입고(입고번호, 상품코드 ,입고일자, 입고수량, 입고단가)
+VALUES(3,'H002',SYSDATE,50,1000);
+--==>>1 행 이(가) 삽입되었습니다.
+
+SELECT *
+FROM TBL_입고;
+--==>>
+/*
+1	H001	2022-03-14 17:41:18	40	1000
+2	H001	2022-03-14 17:41:49	60	1000
+3	H002	2022-03-14 17:42:06	50	1000
+*/
+SELECT *
+FROM TBL_상품;
+--==>>
+/*
+H001	바밤바	 600	100
+H002	죠스바	 500	50
+H003	메로나	 500	0
+H004	보석바	 600	0
+H005	쌍쌍바	 600	0
+H006	수박바	 500	0
+H007	빠삐코	 500	0
+C001	월드콘	1600	0
+C002	빵빠레	1700	0
+C003	구구콘	1800	0
+C004	메타콘	1500	0
+C005	부라보	1500	0
+C006	슈퍼콘	1500	0
+E001	빵또아	1100	0
+E002	셀렉션	1700	0
+E003	투데더	2500	0
+E004	거북알	1500	0
+E005	팥빙수	1500	0
+*/
+------------------------------ 확인 절차
+SELECT *
+FROM TBL_입고;
+--==>>
+/*
+1	H001	2022-03-14 17:41:18	40	1000
+2	H001	2022-03-14 17:41:49	60	1000
+3	H002	2022-03-14 17:42:06	50	1000
+*/
+SELECT *
+FROM TBL_상품;
+--==>>
+/*
+H001	바밤바	 600	100
+H002	죠스바	 500	50
+H003	메로나	 500	0
+H004	보석바	 600	0
+H005	쌍쌍바	 600	0
+H006	수박바	 500	0
+H007	빠삐코	 500	0
+C001	월드콘	1600	0
+C002	빵빠레	1700	0
+C003	구구콘	1800	0
+C004	메타콘	1500	0
+C005	부라보	1500	0
+C006	슈퍼콘	1500	0
+E001	빵또아	1100	0
+E002	셀렉션	1700	0
+E003	투데더	2500	0
+E004	거북알	1500	0
+E005	팥빙수	1500	0
+*/
+
+--1번 INSERT
+INSERT INTO TBL_입고(입고번호, 상품코드 ,입고일자, 입고수량, 입고단가)
+VALUES(4,'H002',SYSDATE,100,1000);
+--==>>1 행 이(가) 삽입되었습니다.
+
+--2번 UPDATE
+
+UPDATE TBL_입고
+SET 입고수량 = 10
+WHERE 입고번호 = 4;
+--==>>1 행 이(가) 업데이트되었습니다.
+
+--3번 DELETE
+DELETE
+FROM TBL_입고
+WHERE 입고번호 = 4;
+--==>>1 행 이(가) 삭제되었습니다.
+-- 연산 잘못 H002 재고수량 50개 되어야함.
+
+UPDATE TBL_상품
+SET 재고수량 = 50
+WHERE 상품코드 = 'H002';
+--==>>1 행 이(가) 업데이트되었습니다.
+
+DELETE
+FROM TBL_출고;
