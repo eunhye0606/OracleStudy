@@ -177,6 +177,11 @@ WHERE TEACHER_CODE = 'T2';
 SELECT *
 FROM COURSE_OPEN;
 --==>>C1	1		1	2021-12-30	2022-06-20	2022-03-17
+
+EXEC PRC_OP_COU_UPDATE('T2');
+SELECT *
+FROM COURSE_OPEN;
+--==>>C1	1	T1	1	2021-12-30	2022-06-20	2022-03-17
 --------------------------------------------------------------------------------
 /*
 - 관리자는 모든 교수 정보 출력 기능 : 교수명, 과목명, 과목시간(시작, 끝)
@@ -203,6 +208,69 @@ ON CO.OP_COURSE_CODE = SO.OP_COURSE_CODE JOIN SUBJECT S
 ON SO.SUBJECT_CODE = S.SUBJECT_CODE JOIN TEXTBOOK T
 ON SO.TEXTBOOK_CODE = T.TEXTBOOK_CODE;
 --==>>자비스	초급자바	2022-01-05	2022-03-05	초보모여라	1501	강의중
+
+--------------------------------------------------------------------------------
+--강의실 테이블 조회
+SELECT *
+FROM CLASSROOM_REGISTER;
+--==>>
+/*
+1	1501	30
+2	2203	30
+3	5603	50
+4	7104	10
+*/
+-- 과정 조회
+SELECT *
+FROM COURSE;
+
+INSERT INTO COURSE_OPEN(OP_COURSE_CODE,COURSE_CODE,CLASSROOM_CODE,START_DATE,END_DATE)
+VALUES('CO1',1,1,TO_DATE('2021-02-02','YYYY-MM-DD'),TO_DATE('2022-05-05','YYYY-MM-DD'));
+--○ 프로시저 명 : PRC_OP_COU_INSERT(과정명, 시작날짜, 종료날짜, 강의실)
+--   관리자가 과정을 개설한다.
+EXEC PRC_OP_COU_INSERT('자바과정','2021-12-31', '2022-06-20', '1501');
+EXEC PRC_OP_COU_INSERT('오라클과정','2021-12-31', '2022-06-20', '7104');
+
+
+SELECT *
+FROM COURSE_OPEN;
+--------------------------------------------------------------------------------
+-- 출력하기
+-- 과정명, 강의실, 과목명, 과목기간, 교재명, 교수자명 → 은혜진행중
+-- 과정테이블, 강의실테이블,          과목테이블, 과목개설테이블, 교재테이블,교수테이블
+-- COURSE       CLASSROOM_REGISTER    SUBJECT     SUBJECT_OPEN    TEXTBOOK  TEACHER_REGISTER
+--                                                --------------
+
+-- 개설된 과목들에 대한 정보 출력임.
+-- (과목개설테이블 - 과목테이블) T1     → 과목명, 과목기간
+--                                  JOIN 교재테이블   → 교재명
+-- (과정개설테이블 - 과정테이블) T3 → 과정명, 강의실명
+--                                      JOIN 교수테이블 → 교수명
+SELECT T2.과정명, T2.강의실명, T1.과목명
+       ,T1.과목시작날짜 || ' ~ ' || T1.과목종료날짜 "과목기간"
+       ,T1.교재명, T2.교수자명
+FROM
+(
+    SELECT SO.START_DATE "과목시작날짜"
+           ,SO.END_DATE "과목종료날짜"
+           ,S.SUBJECT_NAME "과목명"
+           ,T.TEXTBOOK_NAME "교재명"
+           ,SO.OP_COURSE_CODE "과정개설코드"
+    FROM SUBJECT_OPEN SO JOIN SUBJECT S
+    ON SO.SUBJECT_CODE = s.SUBJECT_CODE JOIN TEXTBOOK T
+    ON SO.TEXTBOOK_CODE = T.TEXTBOOK_CODE
+)T1 JOIN
+(
+    SELECT C.COURSE_NAME "과정명"
+           ,CR.CLASSROOM_NAME "강의실명"
+           ,CO.OP_COURSE_CODE "과정개설코드"
+           ,TR.NAME "교수자명"
+    FROM COURSE_OPEN CO JOIN COURSE C 
+    ON CO.COURSE_CODE = C.COURSE_CODE JOIN CLASSROOM_REGISTER CR 
+    ON CO.CLASSROOM_CODE = CR.CLASSROOM_CODE JOIN TEACHER_REGISTER TR
+    ON CO.TEACHER_CODE = TR.TEACHER_CODE
+)T2
+ON T1.과정개설코드 = T2.과정개설코드;
 --------------------------------------------------------------------------------
 --○ TEACHER_REGISTER 테이블에서 ID 컬럼 삭제
 --   이유 : TEACHER_CODE와 같은 기능 담당. 
