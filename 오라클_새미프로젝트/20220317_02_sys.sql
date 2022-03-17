@@ -9,3 +9,6 @@ GRANT CREATE VIEW TO TEAM4;
 --------------------------------------------------------------------------------
 GRANT CREATE PROCEDURE TO TEAM4;
 --==>>Grant을(를) 성공했습니다.
+
+GRANT CREATE TRIGGER TO TEAM4;
+--==>>Grant을(를) 성공했습니다.

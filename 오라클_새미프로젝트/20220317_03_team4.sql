@@ -14,6 +14,8 @@ FROM DUAL;
 EXEC PRC_TC_INSERT('자비스','7005051234567');
 --==>>PL/SQL 프로시저가 성공적으로 완료되었습니다.
 EXEC PRC_TC_INSERT('김아이언맨','8611191234567');
+EXEC PRC_TC_INSERT('남주혁','8801031234567');
+
 --○ 테이블 데이터 확인
 SELECT *
 FROM TEACHER_REGISTER;
@@ -133,7 +135,48 @@ FROM SUBJECT_OPEN;
 --==>>JAVA001	1	1	C1	2022-01-05	2022-03-05	30	40	30	2022-03-17
 
 --------------------------------------------------------------------------------
+SELECT *
+FROM TEACHER_REGISTER;
+-------------------------교수정보수정---------------------------------
+--① 교수의 이름 수정
+UPDATE TEACHER_REGISTER
+SET NAME = '남주혁'
+WHERE TEACHER_CODE = 'T2';
+--==>>1 행 이(가) 업데이트되었습니다.
+--②
+UPDATE TEACHER_REGISTER
+SET PASSWORD = '201812801'
+WHERE TEACHER_CODE = 'T2';
+--==>>1 행 이(가) 업데이트되었습니다.
+-------------------------교수정보삭제---------------------------------
+--○ 과정개설테이블 조회
+SELECT *
+FROM COURSE_OPEN;
+--==>>C1	1	T1	1	2021-12-30	2022-06-20	2022-03-17
+SELECT *
+FROM TEACHER_REGISTER;
+--==>>
+/*
+T2	201812801	남주혁	8611191234567	2022-03-17
+T1	1234567	    자비스	7005051234567	2022-03-17
+*/
 
+--○ 트리거 명 : TRG_TC_UPDATE
+--   트리거 생성 후 , 자식테이블 (COURSE_OPEN)의 
+--   TEACHER_CODE가 0으로 바뀌는지 확인
+DELETE
+FROM TEACHER_REGISTER
+WHERE TEACHER_CODE = 'T1';
+--오 그니까 '0' 이딴거 XX 왜냐하면 참조는 해야하니까!
+-- 자식 테이블 코드 컬럼 = NULL 굴러가는지 확인
+DELETE
+FROM TEACHER_REGISTER
+WHERE TEACHER_CODE = 'T2';
+-- 성공.
+--○ COURE_OPEN 테이블 조회
+SELECT *
+FROM COURSE_OPEN;
+--==>>C1	1		1	2021-12-30	2022-06-20	2022-03-17
 --------------------------------------------------------------------------------
 /*
 - 관리자는 모든 교수 정보 출력 기능 : 교수명, 과목명, 과목시간(시작, 끝)
@@ -169,5 +212,15 @@ ALTER TABLE MANAGER_REGISTER DROP COLUMN ID;
 --==>>Table MANAGER_REGISTER이(가) 변경되었습니다.
 ALTER TABLE STUDENT_REGISTER DROP COLUMN ID;
 --==>>Table STUDENT_REGISTER이(가) 변경되었습니다.
+
+
+-- ○ COURSE_OPEN에 OP_COU_TEA_CODE_NN의 NOT NULL 제거 완료
+ALTER TABLE COURSE_OPEN 
+DROP CONSTRAINT OP_COU_TEA_CODE_NN;
+--==>>Table COURSE_OPEN이(가) 변경되었습니다.
+
+-- ○ 코드테이블 컬럼 네임 변경. 
+ALTER TABLE SCORE_INPUT RENAME COLUMN ATTENDANCE_CODE TO ATTENDANCE_SCORE;
+--==>>Table SCORE_INPUT이(가) 변경되었습니다.
 --------------------------------------------------------------------------------
 

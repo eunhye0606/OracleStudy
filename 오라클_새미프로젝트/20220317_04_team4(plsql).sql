@@ -27,3 +27,37 @@ BEGIN
 END;
 --==>>Procedure PRC_TC_INSERT이(가) 컴파일되었습니다.
 --------------------------------------------------------------------------------
+CREATE OR REPLACE TRIGGER TRG_TC_UPDATE
+       BEFORE
+       DELETE ON TEACHER_REGISTER
+       FOR EACH ROW
+
+BEGIN
+    UPDATE COURSE_OPEN
+    SET TEACHER_CODE = NULL
+    WHERE TEACHER_CODE = :OLD.TEACHER_CODE;
+    
+    --NULL값을 다른교수코드로 바꾸는 프로시저 호출
+    -- 문제점 UPDATE의 WHERE 조건에 어떻게함.. 
+END;
+--==>>Trigger TRG_TC_UPDATE이(가) 컴파일되었습니다.
+
+
+--------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
