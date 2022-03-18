@@ -230,6 +230,8 @@ VALUES('CO1',1,1,TO_DATE('2021-02-02','YYYY-MM-DD'),TO_DATE('2022-05-05','YYYY-M
 --   관리자가 과정을 개설한다.
 EXEC PRC_OP_COU_INSERT('자바과정','2021-12-31', '2022-06-20', '1501');
 EXEC PRC_OP_COU_INSERT('오라클과정','2021-12-31', '2022-06-20', '7104');
+EXEC PRC_OP_COU_INSERT('자바과정','2021-12-31', '2022-06-20', '5603');
+
 
 
 SELECT *
@@ -291,4 +293,155 @@ DROP CONSTRAINT OP_COU_TEA_CODE_NN;
 ALTER TABLE SCORE_INPUT RENAME COLUMN ATTENDANCE_CODE TO ATTENDANCE_SCORE;
 --==>>Table SCORE_INPUT이(가) 변경되었습니다.
 --------------------------------------------------------------------------------
+--2022-03-18 작업시작
+
+DROP PROCEDURE PRC_OP_COU_UPDATE;
+--==>>Procedure PRC_OP_COU_UPDATE이(가) 삭제되었습니다.
+
+DROP TRIGGER TRG_TC_UPDATE;
+--==>>Trigger TRG_TC_UPDATE이(가) 삭제되었습니다.
+--------------------------------------------------------------------------------
+--○ 과정테이블 조회
+SELECT *
+FROM COURSE;
+/*
+1	자바과정
+2	오라클과정
+*/
+--○ 강의실코드
+SELECT *
+FROM CLASSROOM_REGISTER;
+--==>>
+/*
+1	1501	30
+2	2203	30
+3	5603	50
+4	7104	10
+*/
+--○  PRC_OP_COU_INSERT 수정 후, 테스트
+EXEC PRC_OP_COU_INSERT(1,'2021-04-05', '2022-12-24', 1);
+--==>>PL/SQL 프로시저가 성공적으로 완료되었습니다.
+EXEC PRC_OP_COU_INSERT(1,'2021-04-05', '2022-12-24', 1);
+EXEC PRC_OP_COU_INSERT(1,'2021-04-05', '2022-12-24', 1);
+
+
+SELECT *
+FROM COURSE_OPEN;
+
+DELETE
+FROM COURSE_OPEN
+WHERE TEACHER_CODE IS NULL;
+--==>>ORA-02292: integrity constraint (TEAM4.OP_SUB_OP_COU_CODE_FK) violated - child record found
+
+DELETE 
+FROM SUBJECT_OPEN;
+DELETE
+FROM TEACHER_REGISTER;
+
+--------------------------------------------------------------------------------
+--○과목개설테이블 테스트 데이터 입력
+INSERT INTO SUBJECT_OPEN 
+VALUES('JAVA001',1,1,'C1'
+        ,TO_DATE('2022-01-05','YYYY-MM-DD')
+        ,TO_DATE('2022-03-05','YYYY-MM-DD')
+        ,30
+        ,40
+        ,30
+        ,SYSDATE);
+        
+--------------------------------------------------------------------------------
+SELECT TO_NUMBER(SUBSTR('SO00001',3))
+FROM DUAL;
+
+SELECT TO_DATE('2001-01-20','YYYY-MM-DD') - TO_DATE('2010-12-31','YYYY-MM-DD')
+FROM DUAL;
+-- 뒤에날짜가 더 큼.
+--------------------------------------------------------------------------------
+--과정개설테이블
+SELECT *
+FROM COURSE_OPEN;
+
+UPDATE COURSE_OPEN
+SET TEACHER_CODE = 'T1'
+WHERE TEACHER_CODE IS NULL;
+/*
+CO1	1	T1	1	2021-04-05	2022-12-24	2022-03-18
+CO2	1	T1	1	2021-04-05	2022-12-24	2022-03-18
+CO3	1	T1	1	2021-04-05	2022-12-24	2022-03-18
+*/
+--과목테이블
+SELECT *
+FROM SUBJECT;
+/*
+1	초급자바
+2	중급자바
+3	고급자바
+4	초급오라클
+5	중급오라클
+*/
+--교재테이블
+SELECT *
+FROM TEXTBOOK;
+/*
+1	초보모여라	    쌍용강북
+2	애플리케이션	쌍용강남
+3	네트워크구현	쌍용강남
+*/
+--교수테이블
+--○프로시저 명: PRC_TC_INSERT(이름, 주민번호)
+--  프로시저 생성 후, 테스트 실행
+EXEC PRC_TC_INSERT('자비스','7005051234567');
+--==>>PL/SQL 프로시저가 성공적으로 완료되었습니다.
+EXEC PRC_TC_INSERT('김아이언맨','8611191234567');
+EXEC PRC_TC_INSERT('남주혁','8801031234567');
+
+SELECT *
+FROM TEACHER_REGISTER;
+/*
+T1	1234567	자비스	    7005051234567	2022-03-18
+T2	1234567	김아이언맨	8611191234567	2022-03-18
+T3	1234567	남주혁	    8801031234567	2022-03-18
+*/
+-- ○프로시저명 : PRC_OP_SUB_INSERT
+-- (개설과정코드, 과목코드, 시작날짜, 종료날짜, 교재코드, 교수코드)
+-- 'CO1',1,'2021-04-05','2022-12-24',1,'T1'
+-- 프로시저 생성 후, 테스트
+EXEC PRC_OP_SUB_INSERT('CO1',1,'2021-04-05','2022-12-24',1,'T1');
+--==>>PL/SQL 프로시저가 성공적으로 완료되었습니다.
+EXEC PRC_OP_SUB_INSERT('CO6',1,'2021-04-05','2022-12-24',1,'T1');
+--==>>ORA-01403: no data found (개설된 과정이 없음. 사용자에러 발생안함.)
+EXEC PRC_OP_SUB_INSERT('CO4',1,'2021-12-31','2022-06-06',1,'T1');
+EXEC PRC_OP_SUB_INSERT('CO4',1,'2021-12-31','2022-06-30',1,'T1');
+EXEC PRC_OP_SUB_INSERT('CO4',1,'2021-12-31','2022-01-20',1,'T1');
+EXEC PRC_OP_SUB_INSERT('CO4',1,'2022-01-25','2022-03-05',1,'T1');
+EXEC PRC_OP_SUB_INSERT('CO4',1,'2022-02-25','2022-03-05',1,'T1');
+
+
+
+UPDATE COURSE_OPEN
+SET TEACHER_CODE = 'T1'
+WHERE TEACHER_CODE IS NULL;
+
+--○ SUBJECT_OPEN 테이블 조회
+SELECT *
+FROM COURSE_OPEN;
+
+SELECT *
+FROM SUBJECT_OPEN;
+
+SELECT MAX(END_DATE)
+FROM SUBJECT_OPEN
+WHERE OP_COURSE_CODE = 'CO4';
+--==>> 개설된게 없으면 NULL 출력
+
+
+
+
+
+
+
+
+
+
+
 

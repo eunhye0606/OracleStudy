@@ -1,0 +1,103 @@
+1. 기능 구현 쿼리 작성
+2. 문서 정리
+	- 쿼리(로그인기능, 수강신청기능, 성적관련기능, 조회기능) 
+	- 함수(로그인기능, 수강신청기능, 성적관련기능, 조회기능)
+	- 프로시저(로그인기능, 수강신청기능, 성적관련기능, 조회기능)
+	- 트리거(로그인기능, 수강신청기능, 성적관련기능, 조회기능)
+
+
+
+-----------------------------------------------------------------------------
+예시)
+*쿼리
+(1). 로그인기능
+
+요구사항 : 관리자는 모든 교수 정보 출력할 수 있다. 
+출력사항 : 교수명, 과목명, 과목시간, 교재명, 강의실, 강의진행여부
+[쿼리문]
+SELECT TC.NAME "교수명"
+       ,S.SUBJECT_NAME "과목명"     --과목테이블
+       ,SO.START_DATE "과목시작시간" --과목개설테이블
+       ,SO.END_DATE "과목종료시간" --과목개설테이블
+       ,T.TEXTBOOK_NAME "교재명"       --교재테이블
+       ,CR.CLASSROOM_NAME"강의실"       --강의실테이블
+       ,CASE WHEN CO.START_DATE - SYSDATE < 0 AND CO.END_DATE -SYSDATE >= 0
+             THEN '강의중'
+             WHEN CO.START_DATE - SYSDATE >= 0
+             THEN '강의예정'
+             WHEN CO.END_DATE - SYSDATE < 0 
+             THEN '강의종료'
+             ELSE '알수없음.'
+             END "강의진행여부" 
+FROM TEACHER_REGISTER TC JOIN COURSE_OPEN CO
+ON TC.TEACHER_CODE = CO.TEACHER_CODE JOIN CLASSROOM_REGISTER CR
+ON CO.CLASSROOM_CODE = CR.CLASSROOM_CODE JOIN SUBJECT_OPEN SO
+ON CO.OP_COURSE_CODE = SO.OP_COURSE_CODE JOIN SUBJECT S
+ON SO.SUBJECT_CODE = S.SUBJECT_CODE JOIN TEXTBOOK T
+ON SO.TEXTBOOK_CODE = T.TEXTBOOK_CODE;
+
+요구사항 : 어쩌고저쩌고
+출력사항 : 어쩌고저쩌고
+[쿼리문]
+~~~#!@$@%@@%@%
+(2). ~~~
+(3). 성적관련기능
+(4). 조회기능
+
+
+*함수
+(1). 로그인기능
+요구사항 : 
+함수 명 : FN ~~~~(매개변수1, 매개변수2)
+	  고려사항 1. ~~~~~
+	  고려사항 2. ~~~~~
+(2). 수강신청기능
+(3). 성적관련기능
+(4). 조회기능
+함수 명 : FN ~~~(매개변수1)
+
+*프로시저
+(1). 로그인기능
+요구사항 : 관리자가 여러명 교수자 사전 등록이 가능하다.
+프로시저 명 :  PRC_TC_INSERT(이름, 주민번호)
+	       고려사항 1.이름과 주민번호가 중복되는지 확인한다.
+[쿼리문]
+~~~~~
+
+
+
+
+
+-----------------------------------------------------------------------------
+
+3. 쿼리 통합
+	- 사전작업 : 기존테스트 데이터 DELETE
+	- 	     테이블 구조부터 변경(ALTER TABLE 했던거)
+	- 작업 : SQL파일과 PLSQL 파일 구분 후 진행
+		 테스트 데이터 마지막에 싹 넣기(순서 중요)
+		 (↑ 이렇게 하려면 프로시저나 트리거, 함수만들고
+	             매번 테스트 잘 해봤으면 여기서 문제 없음)
+
+4. 커멘트달기	 
+---------------------------------------------------------
+    -- 과정개설코드 자동으로 부여
+    SELECT NVL(MAX(TO_NUMBER(SUBSTR(OP_COURSE_CODE,3))),0) + 1 INTO V_OP_COURSE_CODE
+    FROM COURSE_OPEN;
+    
+    V_OP_COURSE_CODE := 'CO' || V_OP_COURSE_CODE;
+    
+    
+    -- 과정명 입력 받은걸 코드화하기
+    /*
+    SELECT COURSE_CODE INTO V_COURSE_CODE
+    FROM COURSE
+    WHERE COURSE_NAME = N_NAME;     --'자바과정'
+    
+    -- 강의실 입력 받은걸 코드화하기
+    SELECT CLASSROOM_CODE INTO V_CLASSROOM_CODE
+    FROM CLASSROOM_REGISTER
+    WHERE CLASSROOM_NAME = N_CROOM; --'1501'
+    */
+    INSERT INTO COURSE_OPEN
+    (OP_COURSE_CODE ,COURSE_CODE ,CLASSROOM_CODE ,START_DATE ,END_DATE) 
+    VALUES(V_OP_COURSE_CODE,  N_CODE,N_CLACODE, TO_DATE(N_SDATE,'YYYY-MM-DD') ,TO_DATE(N_EDATE,'YYYY-MM-DD'));    
