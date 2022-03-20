@@ -1,0 +1,24 @@
+--[과정개설테이블에 데이터 넣는 프로시저]
+--4. 프로시저 명 : PRC_OP_COU_INSERT(과정코드, 시작일자, 종료일자, 강의실코드)
+--   프로시저 존재이유 : 관리자가 과정을 미리 등록한다.
+CREATE OR REPLACE PROCEDURE PRC_OP_COU_INSERT
+(N_CODE      IN COURSE.COURSE_CODE%TYPE                     --과정코드
+,N_SDATE    IN COURSE_OPEN.START_DATE%TYPE                  --시작날짜
+,N_EDATE    IN COURSE_OPEN.END_DATE%TYPE                    --종료날짜
+,N_CLACODE      IN CLASSROOM_REGISTER.CLASSROOM_CODE%TYPE     --강의실코드. 
+)
+IS
+    V_OP_COURSE_CODE    COURSE_OPEN.OP_COURSE_CODE%TYPE;    -- 과정개설코드   C1 C2 C2...
+BEGIN
+    
+    -- 과정개설코드 자동으로 부여
+    SELECT NVL(MAX(TO_NUMBER(SUBSTR(OP_COURSE_CODE,2))),0) + 1 INTO V_OP_COURSE_CODE
+    FROM COURSE_OPEN;
+    
+    V_OP_COURSE_CODE := 'C' || V_OP_COURSE_CODE;
+    
+    INSERT INTO COURSE_OPEN
+    (OP_COURSE_CODE ,COURSE_CODE ,CLASSROOM_CODE ,START_DATE ,END_DATE) 
+    VALUES(V_OP_COURSE_CODE,  N_CODE,N_CLACODE, TO_DATE(N_SDATE,'YYYY-MM-DD') ,TO_DATE(N_EDATE,'YYYY-MM-DD'));
+    
+END;
